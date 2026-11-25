@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Bidhaa & Stock - Mauzo Kiganjani{% endblock %}
+{% block page_title %}Bidhaa &amp; Stock ({{ business.get_mode_display }}){% endblock %}
+{% block nav_inventory %}active{% endblock %}
+
+{% block content %}
+<div class="card" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+  <div>
+    <h2 style="margin:0 0 4px; color:var(--navy);">Orodha ya Bidhaa &amp; Stock</h2>
+    <p style="margin:0; color:var(--muted); font-size:0.9rem;">
+      Mpangilio wa ndani: <strong>{{ business.get_mode_display }}</strong> (Imefungwa)
+    </p>
+  </div>
+  <a href="{% url 'inventory:product_create' %}" class="btn">+ Ongeza Bidhaa</a>
+</div>
+
+<div class="card">
+  <h3 style="margin:0 0 12px; color:var(--navy);">Stock Iliyopo</h3>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Kodi</th>
+          <th>Jina la Bidhaa</th>
+          <th>Kipimo</th>
+          <th>Bei ya Kununua</th>
+          <th>Bei ya Kuuzia</th>
+          <th>Stock Iliyopo</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in products %}
+        <tr>
+          <td>{{ p.sku_code|default:"-" }}</td>
+          <td><strong>{{ p.name }}</strong></td>
+          <td>{{ p.unit_label }}</td>
+          <td>{{ p.cost_price }}</td>
+          <td>{{ p.selling_price }}</td>
+          <td><strong>{{ p.current_stock }}</strong></td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" style="text-align:center; color:var(--muted);">Hakuna bidhaa bado. Bonyeza "+ Ongeza Bidhaa" kuanza.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card">
+  <h3 style="margin:0 0 12px; color:var(--navy);">Mienendo ya Hivi Karibuni ya Stock</h3>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Bidhaa</th>
+          <th>Mwelekeo</th>
+          <th>Kiasi</th>
+          <th>Salio Baada ya Muamala</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in movements %}
+        <tr>
+          <td>{{ m.product.name }}</td>
+          <td>{{ m.get_direction_display }}</td>
+          <td>{{ m.quantity }}</td>
+          <td><strong>{{ m.balance_after }}</strong></td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="4" style="text-align:center; color:var(--muted);">Hakuna mwenendo wa stock bado.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

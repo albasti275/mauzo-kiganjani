@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}Return Inwards & Outwards - Mauzo Kiganjani{% endblock %}
+{% block page_title %}Return Inwards &amp; Outwards{% endblock %}
+{% block nav_returns %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 14px;
+  }
+  .field-box { margin-bottom: 12px; }
+  .field-box label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem; }
+  .field-box input, .field-box select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 0.96rem;
+  }
+  .err { color: var(--red); font-size: 0.85rem; margin-top: 4px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <h2 style="margin:0 0 6px; color:var(--navy);">Rekodi Return Inwards / Outwards</h2>
+  <p style="margin:0 0 16px; color:var(--muted); font-size:0.9rem;">
+    Tarehe ya mfumo inajijaza otomatiki: <strong>{{ business_day.day_date }}</strong> — stock na faida ya siku husasishwa moja kwa moja.
+  </p>
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-grid">
+      <div class="field-box">
+        {{ form.return_type.label_tag }}
+        {{ form.return_type }}
+        {% for error in form.return_type.errors %}<div class="err">{{ error }}</div>{% endfor %}
+      </div>
+
+      <div class="field-box">
+        {{ form.product.label_tag }}
+        {{ form.product }}
+        {% for error in form.product.errors %}<div class="err">{{ error }}</div>{% endfor %}
+      </div>
+
+      <div class="field-box">
+        {{ form.quantity.label_tag }}
+        {{ form.quantity }}
+        {% for error in form.quantity.errors %}<div class="err">{{ error }}</div>{% endfor %}
+      </div>
+
+      <div class="field-box">
+        {{ form.payment_type.label_tag }}
+        {{ form.payment_type }}
+      </div>
+
+      <div class="field-box">
+        {{ form.counterparty.label_tag }}
+        {{ form.counterparty }}
+      </div>
+
+      <div class="field-box">
+        {{ form.notes.label_tag }}
+        {{ form.notes }}
+      </div>
+    </div>
+
+    <button type="submit" class="btn">Hifadhi Return</button>
+  </form>
+</div>
+
+<div class="card">
+  <h3 style="margin:0 0 12px; color:var(--navy);">Return za Hivi Karibuni</h3>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Tarehe (Mfumo)</th>
+          <th>Mhusika</th>
+          <th>Kiasi (TZS)</th>
+          <th>Maelezo</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in recent_returns %}
+        <tr>
+          <td>{{ r.txn_date|date:"Y-m-d H:i" }}</td>
+          <td>{{ r.counterparty.name|default:"-" }}</td>
+          <td><strong>{{ r.total_amount }}</strong></td>
+          <td>{{ r.notes }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="4" style="text-align:center; color:var(--muted);">Hakuna return zilizorekodiwa bado.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Ongeza Bidhaa - Mauzo Kiganjani{% endblock %}
+{% block page_title %}Ongeza Bidhaa ({{ business.get_mode_display }}){% endblock %}
+{% block nav_inventory %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+  .form-box p { margin: 0 0 14px; }
+  .form-box label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem; }
+  .form-box input, .form-box select {
+    width: 100%;
+    max-width: 520px;
+    padding: 10px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 0.98rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card form-box">
+  <h2 style="margin:0 0 6px; color:var(--navy);">Rekodi Bidhaa Mpya</h2>
+  <p style="color:var(--muted); font-size:0.9rem;">
+    Biashara yako ipo kwenye mode ya <strong>{{ business.get_mode_display }}</strong> — fomu imejipanga kulingana na chaguo hilo.
+  </p>
+
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn">Hifadhi Bidhaa</button>
+    <a href="{% url 'inventory:product_list' %}" style="margin-left:10px; color:var(--muted); text-decoration:none;">Rudi</a>
+  </form>
+</div>
+{% endblock %}

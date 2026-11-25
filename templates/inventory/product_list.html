@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Bidhaa & Stock - Mauzo Kiganjani{% endblock %}
+{% block page_title %}Bidhaa &amp; Stock (Manunuzi){% endblock %}
+{% block nav_inventory %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+  }
+  .field-box { margin-bottom: 12px; }
+  .field-box label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem; }
+  .field-box input, .field-box select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 0.96rem;
+    background: #fff;
+  }
+  .err { color: var(--red); font-size: 0.85rem; margin-top: 4px; }
+  .low-stock-row td {
+    background: #fef2f2 !important;
+    color: #b91c1c !important;
+    font-weight: 700;
+  }
+  .badge-alert {
+    background: #dc2626;
+    color: #fff;
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <h2 style="margin:0 0 6px; color:var(--navy);">Ongeza Stock / Rekodi Manunuzi</h2>
+  <p style="margin:0 0 16px; color:var(--muted); font-size:0.9rem;">
+    Weka jina la msambazaji na uchague kama manunuzi ni <strong>Cash</strong> au <strong>Mkopo</strong>. Tarehe ya mfumo inajijaza otomatiki.
+  </p>
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-grid">
+      {% for field in form.visible_fields %}
+      <div class="field-box">
+        {{ field.label_tag }}
+        {{ field }}
+        {% for error in field.errors %}<div class="err">{{ error }}</div>{% endfor %}
+      </div>
+      {% endfor %}
+    </div>
+
+    <button type="submit" class="btn">Hifadhi Manunuzi &amp; Stock</button>
+  </form>
+</div>
+
+<div class="card">
+  <h3 style="margin:0 0 12px; color:var(--navy);">Orodha ya Bidhaa &amp; Hali ya Stock</h3>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Bidhaa</th>
+          <th>Kipimo</th>
+          <th style="text-align:right;">Bei ya Kununulia</th>
+          <th style="text-align:right;">Bei ya Kuuzia</th>
+          <th style="text-align:right;">Kiwango cha Tahadhari</th>
+          <th style="text-align:right;">Stock Iliyopo</th>
+          <th>Hali</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in products %}
+        <tr class="{% if p.current_stock <= p.reorder_level %}low-stock-row{% endif %}">
+          <td>{{ p.name }}</td>
+          <td>{{ p.unit_label }}</td>
+          <td style="text-align:right; font-variant-numeric:tabular-nums;">{{ p.cost_price }}</td>
+          <td style="text-align:right; font-variant-numeric:tabular-nums;">{{ p.selling_price }}</td>
+          <td style="text-align:right; font-variant-numeric:tabular-nums;">{{ p.reorder_level }}</td>
+          <td style="text-align:right; font-variant-numeric:tabular-nums;">{{ p.current_stock }}</td>
+          <td>
+            {% if p.current_stock <= p.reorder_level %}
+              <span class="badge-alert">Imefika Tahadhari</span>
+            {% else %}
+              <span style="color:var(--green); font-weight:600;">Salama</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" style="text-align:center; color:var(--muted);">Hakuna bidhaa zilizoongezwa bado.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

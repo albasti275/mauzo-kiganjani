@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block title %}Mikopo & Madeni (Wateja na Wasambazaji) - Mauzo Kiganjani{% endblock %}
+{% block page_title %}Mikopo &amp; Malipo ya Madeni{% endblock %}
+{% block nav_debts %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 14px;
+  }
+  .field-box { margin-bottom: 12px; }
+  .field-box label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem; }
+  .field-box input, .field-box select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 0.96rem;
+    background: #fff;
+  }
+  .err { color: var(--red); font-size: 0.85rem; margin-top: 4px; }
+  .num-col { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .two-col-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 16px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <h2 style="margin:0 0 6px; color:var(--navy);">Rekodi Malipo ya Kupunguza Deni (Mteja au Msambazaji)</h2>
+  <p style="margin:0 0 16px; color:var(--muted); font-size:0.9rem;">
+    Chagua <strong>Mteja</strong> anayelipa deni lake au <strong>Msambazaji</strong> ambaye biashara inammlipa kwa manunuzi ya mkopo. Tarehe hujijaza otomatiki (<strong>{{ business_day.day_date }}</strong>).
+  </p>
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-grid">
+      <div class="field-box">
+        {{ form.counterparty.label_tag }}
+        {{ form.counterparty }}
+        {% for error in form.counterparty.errors %}<div class="err">{{ error }}</div>{% endfor %}
+      </div>
+
+      <div class="field-box">
+        {{ form.amount.label_tag }}
+        {{ form.amount }}
+        {% for error in form.amount.errors %}<div class="err">{{ error }}</div>{% endfor %}
+      </div>
+
+      <div class="field-box">
+        {{ form.notes.label_tag }}
+        {{ form.notes }}
+        {% for error in form.notes.errors %}<div class="err">{{ error }}</div>{% endfor %}
+      </div>
+    </div>
+
+    <button type="submit" class="btn">Punguza Deni Sasa</button>
+  </form>
+</div>
+
+<div class="two-col-grid">
+  <div class="card">
+    <h3 style="margin:0 0 12px; color:var(--navy);">Wateja Wenye Madeni (Wanatudaiwa)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Jina la Mteja</th>
+            <th class="num-col">Deni Lililobaki (TZS)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in debtors %}
+          <tr>
+            <td><strong>{{ d.name }}</strong></td>
+            <td class="num-col" style="color:var(--red); font-weight:700;">{{ d.outstanding_balance }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="2" style="text-align:center; color:var(--muted);">Hakuna mteja mwenye deni kwa sasa.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin:0 0 12px; color:var(--navy);">Wasambazaji Tunaowadaiwa (Manunuzi ya Mkopo)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Jina la Msambazaji</th>
+            <th class="num-col">Deni Tunadaiwa (TZS)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in suppliers_owed %}
+          <tr>
+            <td><strong>{{ s.name }}</strong></td>
+            <td class="num-col" style="color:#b45309; font-weight:700;">{{ s.outstanding_balance }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="2" style="text-align:center; color:var(--muted);">Hakuna deni la msambazaji kwa sasa.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h3 style="margin:0 0 12px; color:var(--navy);">Historia ya Kupunguza Deni</h3>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Tarehe Lilipopunguzwa</th>
+          <th>Aina</th>
+          <th>Jina</th>
+          <th class="num-col">Kiasi Kilichopunguzwa (TZS)</th>
+          <th class="num-col">Salio Lililobaki Sasa (TZS)</th>
+          <th>Maelezo</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in repayment_logs %}
+        <tr>
+          <td>{{ item.date_reduced|date:"Y-m-d H:i" }}</td>
+          <td>{{ item.role_label }}</td>
+          <td><strong>{{ item.party_name }}</strong></td>
+          <td class="num-col" style="color:var(--green); font-weight:700;">{{ item.amount_reduced }}</td>
+          <td class="num-col" style="font-weight:700;">{{ item.remaining_balance }}</td>
+          <td>{{ item.notes }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" style="text-align:center; color:var(--muted);">Hakuna malipo ya kupunguza deni yaliyorekodiwa bado.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}Rekodi Mauzo - Mauzo Kiganjani{% endblock %}
+{% block page_title %}Rekodi Mauzo{% endblock %}
+{% block nav_sale %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 14px;
+  }
+  .field-box { margin-bottom: 12px; }
+  .field-box label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem; }
+  .field-box input, .field-box select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 0.96rem;
+    background: #fff;
+  }
+  .err { color: var(--red); font-size: 0.85rem; margin-top: 4px; }
+  .hidden-field { display: none; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <h2 style="margin:0 0 6px; color:var(--navy);">Rekodi Muamala Mpya wa Mauzo</h2>
+  <p style="margin:0 0 16px; color:var(--muted); font-size:0.9rem;">
+    Chagua kwanza kama ni <strong>Cash</strong> au <strong>Mkopo</strong>. Ukichagua <strong>Mkopo</strong>, jina la mteja litahitajika ili aonekane kwenye orodha ya <strong>Mikopo</strong>.
+  </p>
+
+  <form method="post" id="saleForm">
+    {% csrf_token %}
+    <div class="form-grid">
+      <div class="field-box">
+        {{ form.payment_type.label_tag }}
+        {{ form.payment_type }}
+        {% for error in form.payment_type.errors %}<div class="err">{{ error }}</div>{% endfor %}
+      </div>
+
+      <div class="field-box hidden-field" id="customerNameBox">
+        {{ form.customer_name.label_tag }}
+        {{ form.customer_name }}
+        {% for error in form.customer_name.errors %}<div class="err">{{ error }}</div>{% endfor %}
+      </div>
+
+      <div class="field-box" id="productBox">
+        {{ form.product.label_tag }}
+        {{ form.product }}
+        {% for error in form.product.errors %}<div class="err">{{ error }}</div>{% endfor %}
+      </div>
+
+      <div class="field-box" id="quantityBox">
+        {{ form.quantity.label_tag }}
+        {{ form.quantity }}
+        {% for error in form.quantity.errors %}<div class="err">{{ error }}</div>{% endfor %}
+      </div>
+
+      <div class="field-box" id="notesBox">
+        {{ form.notes.label_tag }}
+        {{ form.notes }}
+      </div>
+    </div>
+
+    <button type="submit" class="btn" id="submitSaleBtn">Hifadhi Mauzo</button>
+  </form>
+</div>
+
+<div class="card">
+  <h3 style="margin:0 0 12px; color:var(--navy);">Mauzo ya Hivi Karibuni</h3>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Tarehe</th>
+          <th>Aina</th>
+          <th>Mteja</th>
+          <th>Kiasi (TZS)</th>
+          <th>Maelezo</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in recent_sales %}
+        <tr>
+          <td>{{ s.txn_date|date:"Y-m-d H:i" }}</td>
+          <td>{{ s.get_payment_type_display }}</td>
+          <td>{{ s.counterparty.name|default:"Cash / Walk-in" }}</td>
+          <td><strong>{{ s.total_amount }}</strong></td>
+          <td>{{ s.notes|default:"-" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" style="text-align:center; color:var(--muted);">Hakuna mauzo bado.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  (function() {
+    const paySelect = document.getElementById("id_payment_type");
+    const customerBox = document.getElementById("customerNameBox");
+    const customerInput = document.getElementById("id_customer_name");
+
+    function syncCustomerField() {
+      const val = paySelect ? paySelect.value : "";
+      if (val === "CREDIT") {
+        customerBox.classList.remove("hidden-field");
+        if (customerInput) customerInput.required = true;
+      } else {
+        customerBox.classList.add("hidden-field");
+        if (customerInput) {
+          customerInput.required = false;
+          customerInput.value = "";
+        }
+      }
+    }
+
+    if (paySelect) {
+      paySelect.addEventListener("change", syncCustomerField);
+      syncCustomerField();
+    }
+  })();
+</script>
+{% endblock %}

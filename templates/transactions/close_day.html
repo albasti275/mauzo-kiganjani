@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Funga Siku - Mauzo Kiganjani{% endblock %}
+{% block page_title %}Funga Siku ya Biashara{% endblock %}
+{% block nav_close_day %}active{% endblock %}
+
+{% block content %}
+<div class="card">
+  <h2 style="margin:0 0 6px; color:var(--navy);">Mzunguko wa Siku Uliopo ({{ current_day.day_date }})</h2>
+  <p style="margin:0 0 14px; color:var(--muted); font-size:0.9rem;">
+    Ukifunga siku, mzunguko huu utahifadhiwa kama <strong>Imefungwa</strong> na siku mpya itafunguka ikianza na <strong>Daily Profit: TZS 0.00</strong> (kutokana na transactions za siku hiyo tu).
+  </p>
+
+  <p style="margin:0 0 8px;"><strong>Hali:</strong> {{ current_day.get_status_display }}</p>
+  <p style="margin:0 0 8px;"><strong>Idadi ya Miamala ya Siku Hii:</strong> {{ day_tx_count }}</p>
+  <p style="margin:0 0 18px;"><strong>Daily Profit ya Sasa (Transactions):</strong> <span style="color:var(--green); font-weight:700;">TZS {{ live_day_profit }}</span></p>
+
+  <form method="post" onsubmit="return confirm('Una uhakika unataka kufunga siku ya biashara na kuanza 0.00 upya?');">
+    {% csrf_token %}
+    <button type="submit" class="btn">Funga Siku &amp; Anza 0.00 Upya</button>
+  </form>
+</div>
+
+<div class="card">
+  <h3 style="margin:0 0 12px; color:var(--navy);">Siku Zilizofungwa Hivi Karibuni</h3>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Tarehe</th>
+          <th>Hali</th>
+          <th>Daily Profit (TZS)</th>
+          <th>Ilifungwa Saa</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in closed_days %}
+        <tr>
+          <td>{{ d.day_date }}</td>
+          <td>{{ d.get_status_display }}</td>
+          <td><strong>{{ d.daily_profit }}</strong></td>
+          <td>{{ d.closed_at|date:"Y-m-d H:i" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="4" style="text-align:center; color:var(--muted);">Hakuna siku iliyofungwa bado.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

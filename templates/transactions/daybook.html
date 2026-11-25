@@ -1,0 +1,279 @@
+{% extends "base.html" %}
+{% block title %}Statements & Daybooks - Mauzo Kiganjani{% endblock %}
+{% block page_title %}Statements &amp; Daybooks{% endblock %}
+{% block nav_daybooks %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+  .stmt-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 12px;
+    border-bottom: 2px solid var(--navy);
+    padding-bottom: 12px;
+    margin-bottom: 16px;
+  }
+  .stmt-title { margin: 0; color: var(--navy); font-size: 1.25rem; font-weight: 800; }
+  .stmt-meta { font-size: 0.85rem; color: var(--muted); margin-top: 4px; }
+
+  .filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: flex-end;
+    margin-bottom: 8px;
+  }
+  .filter-bar label { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 4px; }
+  .filter-bar input, .filter-bar select {
+    padding: 9px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 0.94rem;
+    background: #fff;
+    min-width: 240px;
+  }
+  .btn-dl {
+    background: #0f766e;
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: inline-block;
+  }
+  .btn-print {
+    background: #1e293b;
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+
+  .stmt-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .acct-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+  .acct-table th, .acct-table td {
+    padding: 9px 10px;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .acct-table th { background: #f8fafc; color: var(--navy); text-align: left; }
+  .num-col { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .subtotal-row td { font-weight: 700; background: #f8fafc; border-top: 1px solid #94a3b8; }
+  .total-row td { font-weight: 800; background: #eff6ff; color: var(--navy); border-top: 2px solid var(--navy); border-bottom: 2px solid var(--navy); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="stmt-header">
+    <div>
+      <h2 class="stmt-title">{{ business.name }} ({{ business.get_mode_display }})</h2>
+      <div class="stmt-meta">
+        Tarehe ya Mfumo: <strong>{{ generated_date }}</strong> · Mzunguko Wazi: <strong>{{ open_day.day_date }}</strong>
+      </div>
+    </div>
+    {% if has_selection %}
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <button type="button" class="btn-print" onclick="window.print()">Print / Save PDF</button>
+      <a class="btn-dl" href="?report_type={{ report_type }}&date={{ date_str }}&download=csv">Download CSV</a>
+    </div>
+    {% endif %}
+  </div>
+
+  <form method="get" class="filter-bar">
+    <div>
+      <label for="id_report_type">Chagua Statement au Daybook</label>
+      <select id="id_report_type" name="report_type" required>
+        <option value="" {% if not report_type %}selected{% endif %} disabled>-- Chagua hapa --</option>
+        <option value="ALL_STATEMENTS" {% if report_type == "ALL_STATEMENTS" %}selected{% endif %}>Statements Zote (Income + Financial Position + Trial Balance)</option>
+        <option value="INCOME_STATEMENT" {% if report_type == "INCOME_STATEMENT" %}selected{% endif %}>Income Statement (Statement of Profit or Loss)</option>
+        <option value="FINANCIAL_POSITION" {% if report_type == "FINANCIAL_POSITION" %}selected{% endif %}>Statement of Financial Position</option>
+        <option value="TRIAL_BALANCE" {% if report_type == "TRIAL_BALANCE" %}selected{% endif %}>Trial Balance (Mizania ya Majaribio)</option>
+        <option value="ALL" {% if report_type == "ALL" %}selected{% endif %}>General Daybook (Miamala Yote)</option>
+        <option value="CASH" {% if report_type == "CASH" %}selected{% endif %}>Cash Sales Daybook</option>
+        <option value="CREDIT" {% if report_type == "CREDIT" %}selected{% endif %}>Credit Sales Daybook</option>
+        <option value="RETURNS" {% if report_type == "RETURNS" %}selected{% endif %}>Return Inwards &amp; Outwards Daybook</option>
+        <option value="DEBT_PAYMENTS" {% if report_type == "DEBT_PAYMENTS" %}selected{% endif %}>Debt Repayments Daybook</option>
+      </select>
+    </div>
+
+    <div>
+      <label for="id_date">Tarehe (Hiari)</label>
+      <input id="id_date" type="date" name="date" value="{{ date_str }}" style="min-width:170px;">
+    </div>
+
+    <div>
+      <button type="submit" class="btn">Leta Taarifa</button>
+    </div>
+  </form>
+</div>
+
+{% if has_selection %}
+  {% if report_type == "ALL_STATEMENTS" or report_type == "INCOME_STATEMENT" or report_type == "FINANCIAL_POSITION" %}
+  <div class="stmt-grid-2">
+    {% if report_type == "ALL_STATEMENTS" or report_type == "INCOME_STATEMENT" %}
+    <div class="card">
+      <h3 style="margin:0 0 4px; color:var(--navy);">Income Statement (Statement of Profit or Loss)</h3>
+      <p style="margin:0 0 12px; color:var(--muted); font-size:0.84rem;">
+        Kutokana na transactions za biashara pekee (bila kuchanganya na mambo ya stock).
+      </p>
+      <table class="acct-table">
+        <thead>
+          <tr>
+            <th>Line Item</th>
+            <th class="num-col">Amount (TZS)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Gross Sales Revenue (Cash + Credit)</td>
+            <td class="num-col">{{ gross_sales }}</td>
+          </tr>
+          <tr>
+            <td>Less: Return Inwards</td>
+            <td class="num-col">({{ return_inwards_total }})</td>
+          </tr>
+          <tr class="subtotal-row">
+            <td>Net Sales</td>
+            <td class="num-col">{{ net_sales }}</td>
+          </tr>
+          <tr>
+            <td>Return Outwards</td>
+            <td class="num-col">{{ return_outwards_total }}</td>
+          </tr>
+          <tr class="total-row">
+            <td>Net Transaction Profit (All Transactions)</td>
+            <td class="num-col">{{ net_tx_profit }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+
+    {% if report_type == "ALL_STATEMENTS" or report_type == "FINANCIAL_POSITION" %}
+    <div class="card">
+      <h3 style="margin:0 0 4px; color:var(--navy);">Statement of Financial Position (Summary)</h3>
+      <p style="margin:0 0 12px; color:var(--muted); font-size:0.84rem;">
+        Muhtasari wa madeni yanayodaiwa wateja na faida ya miamala.
+      </p>
+      <table class="acct-table">
+        <thead>
+          <tr>
+            <th>Account / Position Item</th>
+            <th class="num-col">Amount (TZS)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Cash Sales Collected</td>
+            <td class="num-col">{{ cash_sales_total }}</td>
+          </tr>
+          <tr>
+            <td>Credit Sales Issued</td>
+            <td class="num-col">{{ credit_sales_total }}</td>
+          </tr>
+          <tr>
+            <td>Debt Repayments Received</td>
+            <td class="num-col">{{ debt_payments_total }}</td>
+          </tr>
+          <tr class="subtotal-row">
+            <td>Trade Receivables (Madeni Yanayodaiwa Wateja)</td>
+            <td class="num-col">{{ total_debtors_balance }}</td>
+          </tr>
+          <tr class="total-row">
+            <td>Open Day Transaction Profit</td>
+            <td class="num-col">{{ open_day_profit }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% if report_type == "ALL_STATEMENTS" or report_type == "TRIAL_BALANCE" %}
+  <div class="card">
+    <h3 style="margin:0 0 4px; color:var(--navy);">Trial Balance (Mizania ya Majaribio)</h3>
+    <p style="margin:0 0 12px; color:var(--muted); font-size:0.84rem;">
+      Muonekano wa Debit na Credit kwa akaunti za miamala na madeni.
+    </p>
+    <div class="table-wrap">
+      <table class="acct-table">
+        <thead>
+          <tr>
+            <th>Account Name</th>
+            <th class="num-col">Debit (TZS)</th>
+            <th class="num-col">Credit (TZS)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in trial_balance_rows %}
+          <tr>
+            <td>{{ row.account }}</td>
+            <td class="num-col">{{ row.debit }}</td>
+            <td class="num-col">{{ row.credit }}</td>
+          </tr>
+          {% endfor %}
+          <tr class="total-row">
+            <td>Total</td>
+            <td class="num-col">{{ tb_total_debit }}</td>
+            <td class="num-col">{{ tb_total_credit }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if report_type == "ALL" or report_type == "CASH" or report_type == "CREDIT" or report_type == "RETURNS" or report_type == "DEBT_PAYMENTS" %}
+  <div class="card">
+    <h3 style="margin:0 0 4px; color:var(--navy);">Daybook / Journal Entries</h3>
+    <p style="margin:0 0 12px; color:var(--muted); font-size:0.84rem;">
+      Jumla ya kiasi: <strong>TZS {{ total_amount_sum }}</strong> · Athari ya faida: <strong>TZS {{ filtered_profit_sum }}</strong>
+    </p>
+    <div class="table-wrap">
+      <table class="acct-table">
+        <thead>
+          <tr>
+            <th>Date &amp; Time</th>
+            <th>Txn Type</th>
+            <th>Payment</th>
+            <th>Counterparty</th>
+            <th class="num-col">Amount (TZS)</th>
+            <th class="num-col">Profit Impact (TZS)</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for tx in transactions %}
+          <tr>
+            <td>{{ tx.txn_date|date:"Y-m-d H:i" }}</td>
+            <td>{{ tx.get_txn_type_display }}</td>
+            <td>{{ tx.get_payment_type_display }}</td>
+            <td>{{ tx.counterparty.name|default:"Cash / Walk-in" }}</td>
+            <td class="num-col"><strong>{{ tx.total_amount }}</strong></td>
+            <td class="num-col">{{ tx.profit_impact }}</td>
+            <td>{{ tx.notes|default:"-" }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7" style="text-align:center; color:var(--muted);">Hakuna miamala inayolingana na chaguo hili.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+{% endif %}
+{% endblock %}

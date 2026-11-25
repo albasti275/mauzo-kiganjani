@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - Mauzo Kiganjani{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block nav_dashboard %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+  .profit-hero {
+    background: var(--card);
+    border-left: 6px solid var(--green);
+    border-radius: 12px;
+    padding: 22px;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+    margin-bottom: 18px;
+  }
+  .profit-label {
+    font-size: 0.92rem;
+    color: var(--muted);
+    font-weight: 700;
+  }
+  .profit-amount {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: var(--green);
+    margin: 8px 0;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 16px;
+  }
+  .box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+  }
+  .box h3 { margin: 0 0 8px; font-size: 1rem; color: var(--navy); }
+  .box p { margin: 0; color: var(--muted); font-size: 0.92rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="profit-hero">
+  <div class="profit-label">DAILY PROFIT ({{ today }}) · Hali ya Siku: {{ business_day.get_status_display }}</div>
+  <div class="profit-amount">TZS {{ business_day.daily_profit }}</div>
+  <div style="font-size:0.86rem; color:var(--muted);">
+    Inaanza 0.00 kila siku mpya au ukifunga duka/mzunguko, na kuongezeka kadri miamala inavyofanyika.
+  </div>
+</section>
+
+<section class="grid">
+ <div class="card">
+  <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+    <div>
+      <h3 style="margin:0; color:var(--navy);">Recent Transactions &amp; System Activities</h3>
+      <p style="margin:4px 0 0; color:var(--muted); font-size:0.86rem;">
+        Shughuli na miamala yote ya hivi karibuni iliyorekodiwa na mfumo (tarehe hujijaza otomatiki).
+      </p>
+    </div>
+    <a href="{% url 'transactions:daybook' %}" class="btn" style="padding:8px 14px; font-size:0.86rem; text-decoration:none;">
+      Fungua Daybooks &amp; Statements
+    </a>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Tarehe (Mfumo)</th>
+          <th>Shughuli / Aina</th>
+          <th>Malipo</th>
+          <th>Mhusika</th>
+          <th style="text-align:right;">Kiasi (TZS)</th>
+          <th style="text-align:right;">Athari ya Faida</th>
+          <th>Maelezo</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for act in recent_activities %}
+        <tr>
+          <td>{{ act.txn_date|date:"Y-m-d H:i" }}</td>
+          <td><strong>{{ act.get_txn_type_display }}</strong></td>
+          <td>{{ act.get_payment_type_display }}</td>
+          <td>{{ act.counterparty.name|default:"Cash / Walk-in" }}</td>
+          <td style="text-align:right; font-variant-numeric:tabular-nums;"><strong>{{ act.total_amount }}</strong></td>
+          <td style="text-align:right; font-variant-numeric:tabular-nums;">{{ act.profit_impact }}</td>
+          <td>{{ act.notes|default:"-" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" style="text-align:center; color:var(--muted);">
+            Hakuna miamala au shughuli zilizorekodiwa bado.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+</section>
+{% endblock %}
